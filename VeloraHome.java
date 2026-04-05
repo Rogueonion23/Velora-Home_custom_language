@@ -99,9 +99,9 @@ public class VeloraHome {
         }
     }
 
-    // =========================
+
     // INSTRUCTION MODEL
-    // =========================
+
     static class Instruction {
         String action;
         List<String> devices = new ArrayList<>();
@@ -115,9 +115,9 @@ public class VeloraHome {
         }
     }
 
-    // =========================
+
     // PARSER + VALIDATOR
-    // =========================
+
     static class Parser {
         private final List<Token> tokens;
         private int index = 0;
@@ -241,9 +241,9 @@ public class VeloraHome {
         }
     }
 
-    // =========================
+
     // MAIN
-    // =========================
+
     public static void main(String[] args) {
         if (args.length != 1) {
             System.out.println("Usage: java VeloraHome <fichier.txt>");
