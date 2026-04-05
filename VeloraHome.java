@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 public class VeloraHome {
 
-    //token types
+    // tipuri de tokenuri
     enum TokenType {
         ACTION,
         DEVICE,
@@ -16,7 +16,7 @@ public class VeloraHome {
         WHITESPACE
     }
 
-    //token class
+    // clasa token
     static class Token {
         TokenType type;
         String value;
@@ -34,7 +34,7 @@ public class VeloraHome {
         }
     }
 
-    //token definition
+    // definirea unui token
     static class TokenDef {
         TokenType type;
         Pattern pattern;
@@ -45,7 +45,7 @@ public class VeloraHome {
         }
     }
 
-    //lexer
+    // analizor lexical
     static class Lexer {
         private final List<TokenDef> tokenDefs;
 
@@ -85,8 +85,8 @@ public class VeloraHome {
 
                 if (!matched) {
                     throw new RuntimeException(
-                        "Erreur lexicale a la position " + globalPos +
-                        " pres de: \"" + preview(input) + "\""
+                        "Eroare lexicala la pozitia " + globalPos +
+                        " langa: \"" + preview(input) + "\""
                     );
                 }
             }
@@ -99,9 +99,7 @@ public class VeloraHome {
         }
     }
 
-
-    // INSTRUCTION MODEL
-
+    // model pentru instructiuni
     static class Instruction {
         String action;
         List<String> devices = new ArrayList<>();
@@ -109,14 +107,13 @@ public class VeloraHome {
 
         @Override
         public String toString() {
-            return "Instruction{action=" + action +
-                   ", devices=" + devices +
-                   ", speedValue=" + speedValue + "}";
+            return "Instruction{actiune=" + action +
+                   ", dispozitive=" + devices +
+                   ", valoareViteza=" + speedValue + "}";
         }
     }
 
-
-    // PARSER + VALIDATOR
+    // parser + validare
 
     static class Parser {
         private final List<Token> tokens;
@@ -168,7 +165,7 @@ public class VeloraHome {
                     break;
 
                 default:
-                    throw new RuntimeException("Action inconnue: " + instr.action);
+                    throw new RuntimeException("Actiune necunoscuta: " + instr.action);
             }
 
             return instr;
@@ -176,15 +173,15 @@ public class VeloraHome {
 
         private Token expect(TokenType expected) {
             if (index >= tokens.size()) {
-                throw new RuntimeException("Fin inattendue du programme, attendu: " + expected);
+                throw new RuntimeException("Sfarsit neasteptat al programului, se astepta: " + expected);
             }
 
             Token current = tokens.get(index);
             if (current.type != expected) {
                 throw new RuntimeException(
-                    "Erreur syntaxique a la position " + current.position +
-                    ": attendu " + expected +
-                    ", trouve " + current.type +
+                    "Eroare sintactica la pozitia " + current.position +
+                    ": se astepta " + expected +
+                    ", dar s-a gasit " + current.type +
                     " (" + current.value + ")"
                 );
             }
@@ -194,19 +191,19 @@ public class VeloraHome {
         }
 
         private void validateForbiddenSequences(List<Instruction> instructions) {
-            // 1. SYNC X X este interzis
+            // 1. SYNC x x este interzis
             for (Instruction instr : instructions) {
                 if ("SYNC".equals(instr.action)) {
                     if (instr.devices.size() == 2 && instr.devices.get(0).equals(instr.devices.get(1))) {
                         throw new RuntimeException(
-                            "Sequence interdite: SYNC ne peut pas synchroniser un dispositif avec lui-meme (" +
+                            "Secventa interzisa: SYNC nu poate sincroniza un dispozitiv cu el insusi (" +
                             instr.devices.get(0) + ")."
                         );
                     }
                 }
             }
 
-            // 2. SAFE urmat imediat de SURG/PULS/CALM pe acelasi device este interzis
+            // 2. SAFE urmat imediat de SURG/PULS/CALM pe acelasi dispozitiv este interzis
             for (int i = 0; i < instructions.size() - 1; i++) {
                 Instruction a = instructions.get(i);
                 Instruction b = instructions.get(i + 1);
@@ -217,14 +214,14 @@ public class VeloraHome {
                     if (("SURG".equals(b.action) || "PULS".equals(b.action) || "CALM".equals(b.action))
                             && b.devices.get(0).equals(devA)) {
                         throw new RuntimeException(
-                            "Sequence interdite: apres SAFE " + devA +
-                            ", on ne peut pas appliquer immediatement " + b.action + "."
+                            "Secventa interzisa: dupa SAFE " + devA +
+                            ", nu se poate aplica direct " + b.action + "."
                         );
                     }
                 }
             }
 
-            // 3. IGNI urmat imediat de NEX pe acelasi device este interzis
+            // 3. IGNI urmat imediat de NEX pe acelasi dispozitiv este interzis
             for (int i = 0; i < instructions.size() - 1; i++) {
                 Instruction a = instructions.get(i);
                 Instruction b = instructions.get(i + 1);
@@ -233,47 +230,57 @@ public class VeloraHome {
                         && !a.devices.isEmpty() && !b.devices.isEmpty()
                         && a.devices.get(0).equals(b.devices.get(0))) {
                     throw new RuntimeException(
-                        "Sequence interdite: IGNI suivi immediatement de NEX pour le meme dispositif (" +
+                        "Secventa interzisa: IGNI urmat imediat de NEX pentru acelasi dispozitiv (" +
                         a.devices.get(0) + ")."
                     );
                 }
             }
         }
     }
+public static void main(String[] args) {
 
+    // lista fisierelor de test
+    String[] testFiles = {
+        "test1.txt",
+        "test2.txt",
+        "test3.txt",
+        "test4.txt",
+        "test5.txt"
+    };
 
-    // MAIN
-
-    public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Usage: java VeloraHome <fichier.txt>");
-            return;
-        }
+    for (String fileName : testFiles) {
+        System.out.println("\n------------------------------");
+        System.out.println("RULARE FISIER: " + fileName);
+        System.out.println("-------------------------------");
 
         try {
-            String content = Files.readString(Path.of(args[0]));
+            // citire fisier
+            String content = Files.readString(Path.of(fileName));
 
+            // analizor lexical
             Lexer lexer = new Lexer();
             List<Token> tokens = lexer.tokenize(content);
 
-            System.out.println("=== TOKENS RECONNUS ===");
+            System.out.println("\n--- TOKENURI ---");
             for (Token token : tokens) {
                 System.out.println(token);
             }
 
+            // parser + validare
             Parser parser = new Parser(tokens);
             List<Instruction> instructions = parser.parseProgram();
 
-            System.out.println();
-            System.out.println("=== INSTRUCTIONS VALIDES ===");
-            for (Instruction instruction : instructions) {
-                System.out.println(instruction);
+            System.out.println("\n--- INSTRUCTIUNI VALIDATE ---");
+            for (Instruction instr : instructions) {
+                System.out.println(instr);
             }
 
-            System.out.println();
-            System.out.println("Analyse lexicale et syntaxique reussie.");
+            System.out.println("\n SUCCES: fisier valid");
+
         } catch (Exception e) {
-            System.out.println("Erreur: " + e.getMessage());
+            System.out.println("\n EROARE in fisier: " + fileName);
+            System.out.println("Motiv: " + e.getMessage());
         }
     }
+}
 }
