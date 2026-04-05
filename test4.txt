@@ -1,0 +1,5 @@
+IGNI AERO;
+PULS AERO V=2m/s;
+SURG AERO V=storm;
+CALM AERO V=1m/s;
+NEX AERO;
